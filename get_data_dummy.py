@@ -1,10 +1,18 @@
 import requests
 import pandas as panda
+import math
+import random
 
-products = []
-url = 'https://gql.tokopedia.com/graphql/SearchQueryV4'
-header = {
-    'authority':'gql.tokopedia.com',
+# function crawling data dari API
+def crawling_data(keyword) :
+    products = [] #array kosong untuk menyimpan produk
+
+    # url tujuan 
+    url = 'https://gql.tokopedia.com/graphql/SearchQueryV4'
+
+    # set header untuk request 
+    header = {
+        'authority':'gql.tokopedia.com',
     'accept':'*/*',
     'accept-language':'en-US,en;q=0.9',
     'content-type':'application/json',
@@ -24,62 +32,151 @@ header = {
     'x-version':'68ba647',
     }
 
-# query = f'[{{"operationName":"SearchQueryV4","variables":{{"sid":"9351716","page":1,"perPage":80,"etalaseId":"etalase","sort":1,"user_districtId":"2274","user_cityId":"176","user_lat":"","user_long":""}},"query":"query SearchQueryV4($sid: String\u0021, $page: Int, $perPage: Int, $keyword: String, $etalaseId: String, $sort: Int, $user_districtId: String, $user_cityId: String, $user_lat: String, $user_long: String) {{\\n  GetShopProduct(shopID: $sid, filter: {{page: $page, perPage: $perPage, fkeyword: $keyword, fmenu: $etalaseId, sort: $sort, user_districtId: $user_districtId, user_cityId: $user_cityId, user_lat: $user_lat, user_long: $user_long}}) {{\\n    status\\n    errors\\n    links {{\\n      prev\\n      next\\n      __typename\\n    }}\\n    data {{\\n      name\\n      product_url\\n      product_id\\n      price {{\\n        text_idr\\n        __typename\\n      }}\\n      primary_image {{\\n        original\\n        thumbnail\\n        resize300\\n        __typename\\n      }}\\n      flags {{\\n        isSold\\n        isPreorder\\n        isWholesale\\n        isWishlist\\n        __typename\\n      }}\\n      campaign {{\\n        discounted_percentage\\n        original_price_fmt\\n        start_date\\n        end_date\\n        __typename\\n      }}\\n      label {{\\n        color_hex\\n        content\\n        __typename\\n      }}\\n      label_groups {{\\n        position\\n        title\\n        type\\n        url\\n        __typename\\n      }}\\n      badge {{\\n        title\\n        image_url\\n        __typename\\n      }}\\n      stats {{\\n        reviewCount\\n        rating\\n        __typename\\n      }}\\n      category {{\\n        id\\n        __typename\\n      }}\\n      __typename\\n    }}\\n    __typename\\n  }}\\n}}\\n"}}]'
-# for i in range (0, 2) :
-initial_query = f'[{{"operationName":"SearchProductQueryV4","variables":{{"params":"device=desktop&navsource=&ob=23&q=Laptop%20Asus&related=true&rows=20&safe_search=false&scheme=https&shipping=&source=search&srp_component_id=01.07.00.00&srp_page_id=&srp_page_title=&st=product&start=0&topads_bucket=true&unique_id=1fdabea77fbaf5f1954bdbc40d4a9337&user_addressId=113228966&user_cityId=171&user_districtId=2233&user_id=7773903&user_lat=-6.377643399999999&user_long=106.7621449&user_postCode=16516&user_warehouseId=0&variants="}},"query":"query SearchProductQueryV4($params: String!) {{\\n  ace_search_product_v4(params: $params) {{\\n    header {{\\n      totalData\\n      totalDataText\\n      processTime\\n      responseCode\\n      errorMessage\\n      additionalParams\\n      keywordProcess\\n      componentId\\n      __typename\\n    }}\\n    data {{\\n      banner {{\\n        position\\n        text\\n        imageUrl\\n        url\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      backendFilters\\n      isQuerySafe\\n      ticker {{\\n        text\\n        query\\n        typeId\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      redirection {{\\n        redirectUrl\\n        departmentId\\n        __typename\\n      }}\\n      related {{\\n        position\\n        trackingOption\\n        relatedKeyword\\n        otherRelated {{\\n          keyword\\n          url\\n          product {{\\n            id\\n            name\\n            price\\n            imageUrl\\n            rating\\n            countReview\\n            url\\n            priceStr\\n            wishlist\\n            shop {{\\n              city\\n              isOfficial\\n              isPowerBadge\\n              __typename\\n            }}\\n            ads {{\\n              adsId: id\\n              productClickUrl\\n              productWishlistUrl\\n              shopClickUrl\\n              productViewUrl\\n              __typename\\n            }}\\n            badges {{\\n              title\\n              imageUrl\\n              show\\n              __typename\\n            }}\\n            ratingAverage\\n             labelGroups {{\\n              position\\n              type\\n              title\\n              url\\n              __typename\\n            }}\\n            componentId\\n            __typename\\n          }}\\n          componentId\\n          __typename\\n        }}\\n        __typename\\n      }}\\n      suggestion {{\\n        currentKeyword\\n        suggestion\\n        suggestionCount\\n        instead\\n        insteadCount\\n        query\\n        text\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      products {{\\n        id\\n        name\\n        ads {{\\n          adsId: id\\n          productClickUrl\\n          productWishlistUrl\\n          productViewUrl\\n          __typename\\n        }}\\n        badges {{\\n          title\\n          imageUrl\\n          show\\n          __typename\\n        }}\\n        category: departmentId\\n        categoryBreadcrumb\\n        categoryId\\n        categoryName\\n        countReview\\n        customVideoURL\\n        discountPercentage\\n        gaKey\\n        imageUrl\\n        labelGroups {{\\n          position\\n          title\\n          type\\n          url\\n          __typename\\n        }}\\n        originalPrice\\n        price\\n        priceRange\\n        rating\\n        ratingAverage\\n    count_sold\\n    shop {{\\n          shopId: id\\n          name\\n          url\\n          city\\n          isOfficial\\n          isPowerBadge\\n          __typename\\n        }}\\n        url\\n        wishlist\\n        sourceEngine: source_engine\\n        __typename\\n      }}\\n      violation {{\\n        headerText\\n        descriptionText\\n        imageURL\\n        ctaURL\\n        ctaApplink\\n        buttonText\\n        buttonType\\n        __typename\\n      }}\\n      __typename\\n    }}\\n    __typename\\n  }}\\n}}\\n"}}]'
-req = requests.post(url, headers=header, data=initial_query).json()
-response = req[0]['data']['ace_search_product_v4']['data']['products']
-for j in response :
-        sold = 'Terjual 0'
-        rating = '0'
-        countReview = 0
-        countReview = j.get('countReview', 0)
-        ratingScore = j.get('ratingAverage', '0')
-        count_sold = j.get('count_sold', '0')
+    # looping dari halaman 1 - 10
+    for i in range (0, 5) :
+        # search query 
+        initial_query = f'[{{"operationName":"SearchProductQueryV4","variables":{{"params":"device=desktop&navsource=&ob=23&page=${i}&q=${keyword}&related=true&rows=60&safe_search=false&scheme=https&shipping=&source=search&srp_component_id=01.07.00.00&srp_page_id=&srp_page_title=&st=product&start=0&topads_bucket=true&unique_id=1fdabea77fbaf5f1954bdbc40d4a9337&user_addressId=113228966&user_cityId=171&user_districtId=2233&user_id=7773903&user_lat=-6.377643399999999&user_long=106.7621449&user_postCode=16516&user_warehouseId=0&variants="}},"query":"query SearchProductQueryV4($params: String!) {{\\n  ace_search_product_v4(params: $params) {{\\n    header {{\\n      totalData\\n      totalDataText\\n      processTime\\n      responseCode\\n      errorMessage\\n      additionalParams\\n      keywordProcess\\n      componentId\\n      __typename\\n    }}\\n    data {{\\n      banner {{\\n        position\\n        text\\n        imageUrl\\n        url\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      backendFilters\\n      isQuerySafe\\n      ticker {{\\n        text\\n        query\\n        typeId\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      redirection {{\\n        redirectUrl\\n        departmentId\\n        __typename\\n      }}\\n      related {{\\n        position\\n        trackingOption\\n        relatedKeyword\\n        otherRelated {{\\n          keyword\\n          url\\n          product {{\\n            id\\n            name\\n            price\\n            imageUrl\\n            rating\\n            countReview\\n            url\\n            priceStr\\n            wishlist\\n            shop {{\\n              city\\n              isOfficial\\n              isPowerBadge\\n              __typename\\n            }}\\n            ads {{\\n              adsId: id\\n              productClickUrl\\n              productWishlistUrl\\n              shopClickUrl\\n              productViewUrl\\n              __typename\\n            }}\\n            badges {{\\n              title\\n              imageUrl\\n              show\\n              __typename\\n            }}\\n            ratingAverage\\n             labelGroups {{\\n              position\\n              type\\n              title\\n              url\\n              __typename\\n            }}\\n            componentId\\n            __typename\\n          }}\\n          componentId\\n          __typename\\n        }}\\n        __typename\\n      }}\\n      suggestion {{\\n        currentKeyword\\n        suggestion\\n        suggestionCount\\n        instead\\n        insteadCount\\n        query\\n        text\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      products {{\\n        id\\n        name\\n        ads {{\\n          adsId: id\\n          productClickUrl\\n          productWishlistUrl\\n          productViewUrl\\n          __typename\\n        }}\\n        badges {{\\n          title\\n          imageUrl\\n          show\\n          __typename\\n        }}\\n        category: departmentId\\n        categoryBreadcrumb\\n        categoryId\\n        categoryName\\n        countReview\\n        customVideoURL\\n        discountPercentage\\n        gaKey\\n        imageUrl\\n        labelGroups {{\\n          position\\n          title\\n          type\\n          url\\n          __typename\\n        }}\\n        originalPrice\\n        price\\n        priceRange\\n        rating\\n        ratingAverage\\n    count_sold\\n    shop {{\\n          shopId: id\\n          name\\n          url\\n          city\\n          isOfficial\\n          isPowerBadge\\n          __typename\\n        }}\\n        url\\n        wishlist\\n        sourceEngine: source_engine\\n        __typename\\n      }}\\n      violation {{\\n        headerText\\n        descriptionText\\n        imageURL\\n        ctaURL\\n        ctaApplink\\n        buttonText\\n        buttonType\\n        __typename\\n      }}\\n      __typename\\n    }}\\n    __typename\\n  }}\\n}}\\n"}}]'
+        
+        # ambil response body 
+        req = requests.post(url, headers=header, data=initial_query).json()
+        response = req[0]['data']['ace_search_product_v4']['data']['products']
+        
+        # fething dan transform data
+        for j in response :
+            # set default value 0 jika data not found 
+            sold = 'Terjual 0'
+            rating = '0'
+            countReview = 0
+            countReview = j.get('countReview', 0)
+            ratingScore = j.get('ratingAverage', '0')
+            count_sold = j.get('count_sold', '0')
 
-        if (count_sold == '') : count_sold = 'Terjual 0'
-        if (ratingScore == '') : ratingScore = '0'
+            if (count_sold == '') : count_sold = 'Terjual 0'
+            if (ratingScore == '') : ratingScore = '0'
             
-        price = j['price']
+            price = j['price']
 
-        # countSold = count_sold[8:]
-        countSold = count_sold.replace('Terjual ', '')
-        price = price.replace('.', '')
-        price = price.replace('Rp', '')
+            # countSold = count_sold[8:]
+            countSold = count_sold.replace('Terjual ', '')
+            price = price.replace('.', '')
+            price = price.replace('Rp', '')
 
-        # print(j)
+            # tambahakan data ke dalam array 
+            products.append(
+                {
+                    'id' : j['id'],
+                    'name' : j['name'],
+                    'imageurl' : j['imageUrl'],
+                    'url' : j['url'],
+                    'seller' : j['shop']['name'],
+                    'location' : j['shop']['city'],
+                    'price' : int(price),
+                    # 'sold' :  countSold,
+                    'sold' : int(countSold),
+                    'rating_score' : float(ratingScore),
+                    # 'rating' : ratingScore,
+                    'count_review' : int(countReview),
+                    'cluster' : 0,
+                }
+            )
 
-        print(
-                j['id'],
-                j['name'],
-                # j['imageUrl'], 
-                # j['url'], 
-                # j['shop']['name'],
-                # j['shop']['city'],
-                int(price),
-                int(countSold),
-                float(ratingScore),
-                int(countReview),
-        )
+    # return data 
+    return products
 
-        products.append(
-            {
-                'id' : j['id'],
-                'name' : j['name'],
-                # 'imageurl' : j['imageUrl'],
-                # 'url' : j['url'],
-                # 'seller' : j['shop']['name'],
-                # 'location' : j['shop']['city'],
-                'price' : int(price),
-                'sold' : int(countSold),
-                'rating' : float(ratingScore),
-                'countReview' : int(countReview),
-                # 'cluster' : 0,
-            }
-        )
 
-dataPrint = panda.DataFrame(products)
-print(dataPrint)
+# function untuk melakukan k-means clustering 
+def clustering(keyword, filename) :
 
-dataPrint.to_excel('data_dummy.xlsx', index=False)
-print('Data Tersimpan')
+    data = crawling_data(keyword) #ambil array dari parameter
+    hasil_cluster = [] # untuk menampung hasil cluster sementara
+
+    num_cluster = 3 # tentukan jumlah cluster
+
+    # inisialisasi titik pusat cluster / centroid 
+    # centroids = {
+    #     'c1' : {'sold' : 0, 'rating_score': 0, 'count_review' : 0},
+    #     'c2' : {'sold' : 250, 'rating_score': , 'count_review' : 100},
+    #     'c3' : {'sold' : 500, 'rating_score': 5, 'count_review' : 250},
+    # }
+
+    centroids = {
+        'c1' : {'sold' : random.randint(0, 10), 'rating_score': 4.5, 'count_review' : random.randint(0, 10)},
+        'c2' : {'sold' : random.randint(100, 200), 'rating_score': 4.75, 'count_review' : random.randint(100, 200)},
+        'c3' : {'sold' : random.randint(500, 600), 'rating_score': 5, 'count_review' : random.randint(500, 600)},
+    }
+
+    print(centroids)
+
+    max_iteration = 100 # atur iterasi maksimal
+
+    for _ in range(max_iteration) :
+        # centroids = init_centroids
+        sum_c1 = {'sold' : 0, 'rating_score' : 0, 'count_review' : 0}
+        sum_c2 = {'sold' : 0, 'rating_score' : 0, 'count_review' : 0}
+        sum_c3 = {'sold' : 0, 'rating_score' : 0, 'count_review' : 0}
+        jml_c1 = 0
+        jml_c2 = 0
+        jml_c3 = 0
+
+        for i in range(len(data)) :
+            distance = []
+            # print(item)
+            c1 = math.sqrt((data[i]['sold'] - centroids['c1']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c1']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c1']['count_review']) ** 2)
+            c2 = math.sqrt((data[i]['sold'] - centroids['c2']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c2']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c2']['count_review']) ** 2)
+            c3 = math.sqrt((data[i]['sold'] - centroids['c3']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c3']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c3']['count_review']) ** 2)
+            # print(c1, c2, c3)
+            # jika c1 yang paling sedikit
+            if (c1 < c2 and c1 < c3) :
+                sum_c1['sold'] += data[i]['sold'] 
+                sum_c1['rating_score'] += data[i]['rating_score'] 
+                sum_c1['count_review'] += data[i]['count_review'] 
+                jml_c1 += 1
+                data[i]['cluster'] = 1
+
+            # jika c2 yang paling sedikit
+            if (c2 < c1 and c2 < c3) :
+                sum_c2['sold'] += data[i]['sold'] 
+                sum_c2['rating_score'] += data[i]['rating_score'] 
+                sum_c2['count_review'] += data[i]['count_review'] 
+                jml_c2 += 1
+                data[i]['cluster'] = 2
+
+            # jika c3 yang paling sedikit
+            if (c3 < c1 and c3 < c2) :
+                sum_c3['sold'] += data[i]['sold'] 
+                sum_c3['rating_score'] += data[i]['rating_score'] 
+                sum_c3['count_review'] += data[i]['count_review'] 
+                jml_c3 += 1
+                data[i]['cluster'] = 3
+            
+            # print(data[i])
+        
+        print(jml_c1, jml_c2, jml_c3)
+
+        # buat centroid baru 
+        new_centroid = {
+            'c1' : {'sold' : round(sum_c1['sold'] / jml_c1, 3), 'rating_score': round(sum_c1['rating_score'] / jml_c1, 3), 'count_review' : round(sum_c1['count_review'] / jml_c1, 3)},
+            'c2' : {'sold' : round(sum_c2['sold'] / jml_c2, 3), 'rating_score': round(sum_c2['rating_score'] / jml_c2, 3), 'count_review' : round(sum_c2['count_review'] / jml_c2, 3)},
+            'c3' : {'sold' : round(sum_c3['sold'] / jml_c3, 3), 'rating_score': round(sum_c3['rating_score'] / jml_c3, 3), 'count_review' : round(sum_c3['count_review'] / jml_c3, 3)},
+        }
+
+        # jika centroid sudah sama, hentikan perulangan 
+        if (centroids == new_centroid) :
+            break
+
+        # jika masih belum sama, lanjutkan smpai batas maksimal iterasi
+        centroids = new_centroid
+
+        print(centroids)
+
+    # menyimpan ke dalam excel 
+    dataPrint = panda.DataFrame(data)
+
+    dataPrint.to_excel(filename, index=False)
+    print('Data Tersimpan')
+
+    return data
+
+
+# jalankan method clustering 
+clustering('handphone', '02_handphone.xlsx')
