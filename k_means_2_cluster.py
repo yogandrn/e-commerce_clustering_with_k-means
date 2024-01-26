@@ -1,4 +1,5 @@
 from flask import Flask, request, make_response, jsonify, Response
+from flask_cors import CORS
 import pandas as pd
 import requests
 import math
@@ -7,6 +8,7 @@ import random
 import hashlib
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 @app.route('/index') 
@@ -23,6 +25,8 @@ def get_products() :
     
     # return response data produk
     return make_response(jsonify(products), 200)
+
+
 
 
 @app.route('/clustering', methods=['GET'])
@@ -52,6 +56,9 @@ def kmeans_clustering() :
 
 # function crawling data dari API
 def crawling_data(keyword) :
+    results = {}
+    productIds = [] #array kosong untuk menyimpan produk
+    allProductIds = [] #array kosong untuk menyimpan produk
     products = [] #array kosong untuk menyimpan produk
 
     # url tujuan 
@@ -81,34 +88,35 @@ def crawling_data(keyword) :
 
     # query = f'[{{"operationName":"SearchQueryV4","variables":{{"sid":"9351716","page":1,"perPage":80,"etalaseId":"etalase","sort":1,"user_districtId":"2274","user_cityId":"176","user_lat":"","user_long":""}},"query":"query SearchQueryV4($sid: String\u0021, $page: Int, $perPage: Int, $keyword: String, $etalaseId: String, $sort: Int, $user_districtId: String, $user_cityId: String, $user_lat: String, $user_long: String) {{\\n  GetShopProduct(shopID: $sid, filter: {{page: $page, perPage: $perPage, fkeyword: $keyword, fmenu: $etalaseId, sort: $sort, user_districtId: $user_districtId, user_cityId: $user_cityId, user_lat: $user_lat, user_long: $user_long}}) {{\\n    status\\n    errors\\n    links {{\\n      prev\\n      next\\n      __typename\\n    }}\\n    data {{\\n      name\\n      product_url\\n      product_id\\n      price {{\\n        text_idr\\n        __typename\\n      }}\\n      primary_image {{\\n        original\\n        thumbnail\\n        resize300\\n        __typename\\n      }}\\n      flags {{\\n        isSold\\n        isPreorder\\n        isWholesale\\n        isWishlist\\n        __typename\\n      }}\\n      campaign {{\\n        discounted_percentage\\n        original_price_fmt\\n        start_date\\n        end_date\\n        __typename\\n      }}\\n      label {{\\n        color_hex\\n        content\\n        __typename\\n      }}\\n      label_groups {{\\n        position\\n        title\\n        type\\n        url\\n        __typename\\n      }}\\n      badge {{\\n        title\\n        image_url\\n        __typename\\n      }}\\n      stats {{\\n        reviewCount\\n        rating\\n        __typename\\n      }}\\n      category {{\\n        id\\n        __typename\\n      }}\\n      __typename\\n    }}\\n    __typename\\n  }}\\n}}\\n"}}]'
     
-    # looping dari halaman 1 - 10
-    for i in range (0, 5) :
-        # search query 
-        initial_query = f'[{{"operationName":"SearchProductQueryV4","variables":{{"params":"device=desktop&navsource=&ob=23&page=${i}&q=${keyword}&related=true&rows=60&safe_search=false&scheme=https&shipping=&source=search&srp_component_id=01.07.00.00&srp_page_id=&srp_page_title=&st=product&start=0&topads_bucket=true&unique_id=1fdabea77fbaf5f1954bdbc40d4a9337&user_addressId=113228966&user_cityId=171&user_districtId=2233&user_id=7773903&user_lat=-6.377643399999999&user_long=106.7621449&user_postCode=16516&user_warehouseId=0&variants="}},"query":"query SearchProductQueryV4($params: String!) {{\\n  ace_search_product_v4(params: $params) {{\\n    header {{\\n      totalData\\n      totalDataText\\n      processTime\\n      responseCode\\n      errorMessage\\n      additionalParams\\n      keywordProcess\\n      componentId\\n      __typename\\n    }}\\n    data {{\\n      banner {{\\n        position\\n        text\\n        imageUrl\\n        url\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      backendFilters\\n      isQuerySafe\\n      ticker {{\\n        text\\n        query\\n        typeId\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      redirection {{\\n        redirectUrl\\n        departmentId\\n        __typename\\n      }}\\n      related {{\\n        position\\n        trackingOption\\n        relatedKeyword\\n        otherRelated {{\\n          keyword\\n          url\\n          product {{\\n            id\\n            name\\n            price\\n            imageUrl\\n            rating\\n            countReview\\n            url\\n            priceStr\\n            wishlist\\n            shop {{\\n              city\\n              isOfficial\\n              isPowerBadge\\n              __typename\\n            }}\\n            ads {{\\n              adsId: id\\n              productClickUrl\\n              productWishlistUrl\\n              shopClickUrl\\n              productViewUrl\\n              __typename\\n            }}\\n            badges {{\\n              title\\n              imageUrl\\n              show\\n              __typename\\n            }}\\n            ratingAverage\\n             labelGroups {{\\n              position\\n              type\\n              title\\n              url\\n              __typename\\n            }}\\n            componentId\\n            __typename\\n          }}\\n          componentId\\n          __typename\\n        }}\\n        __typename\\n      }}\\n      suggestion {{\\n        currentKeyword\\n        suggestion\\n        suggestionCount\\n        instead\\n        insteadCount\\n        query\\n        text\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      products {{\\n        id\\n        name\\n        ads {{\\n          adsId: id\\n          productClickUrl\\n          productWishlistUrl\\n          productViewUrl\\n          __typename\\n        }}\\n        badges {{\\n          title\\n          imageUrl\\n          show\\n          __typename\\n        }}\\n        category: departmentId\\n        categoryBreadcrumb\\n        categoryId\\n        categoryName\\n        countReview\\n        customVideoURL\\n        discountPercentage\\n        gaKey\\n        imageUrl\\n        labelGroups {{\\n          position\\n          title\\n          type\\n          url\\n          __typename\\n        }}\\n        originalPrice\\n        price\\n        priceRange\\n        rating\\n        ratingAverage\\n    count_sold\\n    shop {{\\n          shopId: id\\n          name\\n          url\\n          city\\n          isOfficial\\n          isPowerBadge\\n          __typename\\n        }}\\n        url\\n        wishlist\\n        sourceEngine: source_engine\\n        __typename\\n      }}\\n      violation {{\\n        headerText\\n        descriptionText\\n        imageURL\\n        ctaURL\\n        ctaApplink\\n        buttonText\\n        buttonType\\n        __typename\\n      }}\\n      __typename\\n    }}\\n    __typename\\n  }}\\n}}\\n"}}]'
-        
-        # ambil response body 
-        req = requests.post(url, headers=header, data=initial_query).json()
-        response = req[0]['data']['ace_search_product_v4']['data']['products']
-        
-        # fething dan transform data
-        for j in response :
-            # set default value 0 jika data not found 
-            sold = 'Terjual 0'
-            rating = '0'
-            countReview = 0
-            countReview = j.get('countReview', 0)
-            ratingScore = j.get('ratingAverage', '0')
-            count_sold = j.get('count_sold', '0')
+    max_count_sold = 0
+    max_count_review = 0
 
-            if (count_sold == '') : count_sold = 'Terjual 0'
-            if (ratingScore == '') : ratingScore = '0'
+    # search query 
+    initial_query = f'[{{"operationName":"SearchProductQueryV4","variables":{{"params":"device=desktop&navsource=&ob=23&q=${keyword}&related=true&rows=200&safe_search=false&scheme=https&shipping=&source=search&srp_component_id=01.07.00.00&srp_page_id=&srp_page_title=&st=product&start=0&topads_bucket=false&unique_id=1fdabea77fbaf5f1954bdbc40d4a9337&user_addressId=113228966&user_cityId=171&user_districtId=2233&user_id=7773903&user_lat=-6.377643399999999&user_long=106.7621449&user_postCode=16516&user_warehouseId=0&variants="}},"query":"query SearchProductQueryV4($params: String!) {{\\n  ace_search_product_v4(params: $params) {{\\n    header {{\\n      totalData\\n      totalDataText\\n      processTime\\n      responseCode\\n      errorMessage\\n      additionalParams\\n      keywordProcess\\n      componentId\\n      __typename\\n    }}\\n    data {{\\n      banner {{\\n        position\\n        text\\n        imageUrl\\n        url\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      backendFilters\\n      isQuerySafe\\n      ticker {{\\n        text\\n        query\\n        typeId\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      redirection {{\\n        redirectUrl\\n        departmentId\\n        __typename\\n      }}\\n      related {{\\n        position\\n        trackingOption\\n        relatedKeyword\\n        otherRelated {{\\n          keyword\\n          url\\n          product {{\\n            id\\n            name\\n            price\\n            imageUrl\\n            rating\\n            countReview\\n            url\\n            priceStr\\n            wishlist\\n            shop {{\\n              city\\n              isOfficial\\n              isPowerBadge\\n              __typename\\n            }}\\n            ads {{\\n              adsId: id\\n              productClickUrl\\n              productWishlistUrl\\n              shopClickUrl\\n              productViewUrl\\n              __typename\\n            }}\\n            badges {{\\n              title\\n              imageUrl\\n              show\\n              __typename\\n            }}\\n            ratingAverage\\n             labelGroups {{\\n              position\\n              type\\n              title\\n              url\\n              __typename\\n            }}\\n            componentId\\n            __typename\\n          }}\\n          componentId\\n          __typename\\n        }}\\n        __typename\\n      }}\\n      suggestion {{\\n        currentKeyword\\n        suggestion\\n        suggestionCount\\n        instead\\n        insteadCount\\n        query\\n        text\\n        componentId\\n        trackingOption\\n        __typename\\n      }}\\n      products {{\\n        id\\n        name\\n        ads {{\\n          adsId: id\\n          productClickUrl\\n          productWishlistUrl\\n          productViewUrl\\n          __typename\\n        }}\\n        badges {{\\n          title\\n          imageUrl\\n          show\\n          __typename\\n        }}\\n        category: departmentId\\n        categoryBreadcrumb\\n        categoryId\\n        categoryName\\n        countReview\\n        customVideoURL\\n        discountPercentage\\n        gaKey\\n        imageUrl\\n        labelGroups {{\\n          position\\n          title\\n          type\\n          url\\n          __typename\\n        }}\\n        originalPrice\\n        price\\n        priceRange\\n        rating\\n        ratingAverage\\n    count_sold\\n    shop {{\\n          shopId: id\\n          name\\n          url\\n          city\\n          isOfficial\\n          isPowerBadge\\n          __typename\\n        }}\\n        url\\n        wishlist\\n        sourceEngine: source_engine\\n        __typename\\n      }}\\n      violation {{\\n        headerText\\n        descriptionText\\n        imageURL\\n        ctaURL\\n        ctaApplink\\n        buttonText\\n        buttonType\\n        __typename\\n      }}\\n      __typename\\n    }}\\n    __typename\\n  }}\\n}}\\n"}}]'
             
-            price = j['price']
+    # ambil response body 
+    httpRequest = requests.post(url, headers=header, data=initial_query).json()
+    response = httpRequest[0]['data']['ace_search_product_v4']['data']['products']
 
-            # countSold = count_sold[8:]
-            countSold = count_sold.replace('Terjual ', '')
-            price = price.replace('.', '')
-            price = price.replace('Rp', '')
+    # fething dan transform data
+    for j in response :
+        # set default value 0 jika data not found 
+        sold = 'Terjual 0'
+        rating = '0'
+        countReview = 0
+        countReview = j.get('countReview', 0)
+        ratingScore = j.get('ratingAverage', '0')
+        count_sold = j.get('count_sold', '0')
+
+        if (count_sold == '') : count_sold = 'Terjual 0'
+        if (ratingScore == '') : ratingScore = '0'
+                
+        price = j['price']
+
+        # countSold = count_sold[8:]
+        countSold = count_sold.replace('Terjual ', '')
+        price = price.replace('.', '')
+        price = price.replace('Rp', '')
 
             # print(j)
 
@@ -128,11 +136,39 @@ def crawling_data(keyword) :
             # )
 
             # tambahakan data ke dalam array 
+        if (int(countSold) > max_count_sold) :
+            max_count_sold = int(countSold)
+
+        if (int(countReview) > max_count_review) : 
+            max_count_review = int(countReview)
+
+            # products.append(
+            #     {
+            #         'id' : j['id'],
+            #         'name' : j['name'],
+            #         'image_url' : j['imageUrl'],
+            #         'url' : j['url'],
+            #         'seller' : j['shop']['name'],
+            #         'location' : j['shop']['city'],
+            #         'price' : int(price),
+            #         # 'sold' :  countSold,
+            #         'sold' : int(countSold),
+            #         'rating_score' : float(ratingScore),
+            #         # 'rating' : ratingScore,
+            #         'count_review' : int(countReview),
+            #         'cluster' : 0,
+            #     }
+            # )
+        isDuplicated = str(j['id']) in productIds
+        # print(isDuplicated)
+        if (str(j['id']) not in productIds) :
+            # print('Duplicated')
+        # else :
             products.append(
                 {
-                    'id' : j['id'],
+                    'id' : str(j['id']),
                     'name' : j['name'],
-                    'imageurl' : j['imageUrl'],
+                    'image_url' : j['imageUrl'],
                     'url' : j['url'],
                     'seller' : j['shop']['name'],
                     'location' : j['shop']['city'],
@@ -142,20 +178,29 @@ def crawling_data(keyword) :
                     'rating_score' : float(ratingScore),
                     # 'rating' : ratingScore,
                     'count_review' : int(countReview),
-                    'cluster' : 0,
+                    # 'cluster' : 0,
                 }
             )
+            productIds.append(str(j['id']))
+                # print ('Unique')
+            # print(countSold, ratingScore, countReview)
+        allProductIds.append(str(j['id']))
 
+    # print(productIds)
     # return data 
+    results['products'] = products
+    results['max_count_sold'] = max_count_sold
+    results['max_count_review'] = max_count_review
+    # print(productIds)
     return products
 
 
 # function untuk melakukan k-means clustering 
 def clustering(params) :
-    data = params #ambil array dari parameter
-    hasil_cluster = [] # untuk menampung hasil cluster sementara
+    data = params #ambil array dari parameter untuk diolah
+    response_data = {} # object untk response
 
-    num_cluster = 3 # tentukan jumlah cluster
+    num_cluster = 2 # tentukan jumlah cluster
 
     # inisialisasi titik pusat cluster / centroid 
     # centroids = {
@@ -163,35 +208,39 @@ def clustering(params) :
     #     'c2' : {'sold' : 250, 'rating_score': , 'count_review' : 100},
     #     'c3' : {'sold' : 500, 'rating_score': 5, 'count_review' : 250},
     # }
+    # centroid_1_sold = round((max_count_sold / 4) * 1)
+    # centroid_1_sold = round((max_count_review / 4) * 1)
 
+    # menentukan centroid awal 
     centroids = {
-        'c1' : {'sold' : random.randint(0, 10), 'rating_score': 4.5, 'count_review' : random.randint(0, 10)},
-        'c2' : {'sold' : random.randint(100, 200), 'rating_score': 4.75, 'count_review' : random.randint(100, 200)},
-        'c3' : {'sold' : random.randint(500, 600), 'rating_score': 5, 'count_review' : random.randint(500, 600)},
+        'c1' : {'sold' : random.randint(0, 10), 'rating_score': 0, 'count_review' : random.randint(0, 10)},
+        # 'c2' : {'sold' : random.randint(450, 550), 'rating_score': 4.75, 'count_review' : random.randint(450, 550)},
+        'c2' : {'sold' : random.randint(450, 550), 'rating_score': 5, 'count_review' : random.randint(450, 550)},
     }
 
     print(centroids)
 
     max_iteration = 100 # atur iterasi maksimal
 
+    # lakukan perulangan dengan batas iterasi yang sudah ditentukan (100)
     for _ in range(max_iteration) :
-        # centroids = init_centroids
+        # buat variable untuk menyimpan hasil cluster sementara (temporary)
         sum_c1 = {'sold' : 0, 'rating_score' : 0, 'count_review' : 0}
         sum_c2 = {'sold' : 0, 'rating_score' : 0, 'count_review' : 0}
-        sum_c3 = {'sold' : 0, 'rating_score' : 0, 'count_review' : 0}
         jml_c1 = 0
         jml_c2 = 0
-        jml_c3 = 0
 
+        # lakukan iterasi setiap data 
         for i in range(len(data)) :
             distance = []
-            # print(item)
+            # hitung jarak item data dengan setiap centroid (c1 atau c2)
             c1 = math.sqrt((data[i]['sold'] - centroids['c1']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c1']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c1']['count_review']) ** 2)
             c2 = math.sqrt((data[i]['sold'] - centroids['c2']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c2']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c2']['count_review']) ** 2)
-            c3 = math.sqrt((data[i]['sold'] - centroids['c3']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c3']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c3']['count_review']) ** 2)
-            # print(c1, c2, c3)
+
+            # tentukan cluster dari setiap data berdasarkan jarak ke pusat centrois terdekat 
+
             # jika c1 yang paling sedikit
-            if (c1 < c2 and c1 < c3) :
+            if (c1 < c2 ) :
                 sum_c1['sold'] += data[i]['sold'] 
                 sum_c1['rating_score'] += data[i]['rating_score'] 
                 sum_c1['count_review'] += data[i]['count_review'] 
@@ -199,110 +248,66 @@ def clustering(params) :
                 data[i]['cluster'] = 1
 
             # jika c2 yang paling sedikit
-            if (c2 < c1 and c2 < c3) :
+            if (c2 < c1 ) :
                 sum_c2['sold'] += data[i]['sold'] 
                 sum_c2['rating_score'] += data[i]['rating_score'] 
                 sum_c2['count_review'] += data[i]['count_review'] 
                 jml_c2 += 1
                 data[i]['cluster'] = 2
 
-            # jika c3 yang paling sedikit
-            if (c3 < c1 and c3 < c2) :
-                sum_c3['sold'] += data[i]['sold'] 
-                sum_c3['rating_score'] += data[i]['rating_score'] 
-                sum_c3['count_review'] += data[i]['count_review'] 
-                jml_c3 += 1
-                data[i]['cluster'] = 3
-            
-            # print(data[i])
-        
-        print(jml_c1, jml_c2, jml_c3)
+        # buat variable untuk centroid baru 
+        c1_sold = centroids['c1']['sold']
+        c1_rating_score = centroids['c1']['rating_score']
+        c1_review_count = centroids['c1']['count_review']
+        c2_sold = centroids['c2']['sold']
+        c2_rating_score = centroids['c2']['rating_score']
+        c2_review_count = centroids['c2']['count_review']
 
-        # buat centroid baru 
+        # buat centroid baru, jika data milik cluster masih 0, gunakan centroid lama
+        if (sum_c1['sold'] != 0 ) :
+            c1_sold =  round(sum_c1['sold'] / jml_c1, 3)
+
+        if (sum_c1['rating_score'] != 0 ) :
+            c1_rating_score =  round(sum_c1['rating_score'] / jml_c1, 3)
+
+        if (sum_c1['count_review'] != 0 ) :
+            c1_review_count =  round(sum_c1['count_review'] / jml_c1, 3)
+
+        if (sum_c2['sold'] != 0 ) :
+            c2_sold =  round(sum_c2['sold'] / jml_c2, 3)
+
+        if (sum_c2['rating_score'] != 0 ) :
+            c2_rating_score =  round(sum_c2['rating_score'] / jml_c2, 3)
+
+        if (sum_c2['count_review'] != 0 ) :
+            c2_review_count =  round(sum_c2['count_review'] / jml_c2, 3)
+            
+        
+        # masukan variable ke centroid baru 
         new_centroid = {
-            'c1' : {'sold' : round(sum_c1['sold'] / jml_c1, 3), 'rating_score': round(sum_c1['rating_score'] / jml_c1, 3), 'count_review' : round(sum_c1['count_review'] / jml_c1, 3)},
-            'c2' : {'sold' : round(sum_c2['sold'] / jml_c2, 3), 'rating_score': round(sum_c2['rating_score'] / jml_c2, 3), 'count_review' : round(sum_c2['count_review'] / jml_c2, 3)},
-            'c3' : {'sold' : round(sum_c3['sold'] / jml_c3, 3), 'rating_score': round(sum_c3['rating_score'] / jml_c3, 3), 'count_review' : round(sum_c3['count_review'] / jml_c3, 3)},
+            'c1' : {'sold' : c1_sold, 'rating_score': c1_rating_score, 'count_review' : c1_review_count},
+            'c2' : {'sold' : c2_sold, 'rating_score': c2_rating_score, 'count_review' : c2_review_count},
+            # 'c3' : {'sold' : c3_sold, 'rating_score': c3_rating_score, 'count_review' : c3_review_count},
         }
+        print(jml_c1, jml_c2)
 
         # jika centroid sudah sama, hentikan perulangan 
         if (centroids == new_centroid) :
             break
 
-        # jika masih belum sama, lanjutkan smpai batas maksimal iterasi
+        # jika masih belum sama, lanjutkan smpai batas maksimal iterasi dengan mengubah centroid
         centroids = new_centroid
 
         print(centroids)
 
-    # print(data)
-    return data
+    # tampilkan hasil klastering
+    response_data['cluster_1'] = jml_c1
+    response_data['cluster_2'] = jml_c2
+    response_data['data'] = data
+    return response_data
 
-
-def cluster(data) :
-    # Fitur yang akan digunakan untuk clustering
-    features = ['sold', 'rating_score', 'count_review']
-
-    # Jumlah kluster yang diinginkan
-    num_clusters = 3
-
-    # Pusat kluster awal yang Anda tentukan (dalam bentuk list of dictionaries)
-    initial_centers = [
-        {'sold': 15, 'rating_score': 4.7, 'count_review': 15},
-        {'sold': 50, 'rating_score': 4.8, 'count_review': 500},
-        {'sold': 100, 'rating_score': 5, 'count_review': 100}
-    ]
-    # Mengubah initial_centers menjadi satu list yang berisi nilai fitur secara berurutan
-    centers = np.array([initial_centers[i][feature] for feature in features for i in range(num_clusters)])
-
-    # Maksimum iterasi
-    max_iters = 10
-
-    for _ in range(max_iters):
-        # Menyimpan hasil kluster untuk setiap data point
-        cluster_assignments = []
-
-        # Assign data point ke kluster terdekat
-        for item in data:
-            distances = []
-            for center_idx in range(num_clusters):
-                distance = 0
-                for feature in features:
-                    distance += (item[feature] - centers[center_idx * len(features) + features.index(feature)]) ** 2
-                distances.append(math.sqrt(distance))
-            cluster_assignments.append(distances.index(min(distances)))
-
-        # Menghitung pusat baru untuk setiap kluster
-        new_centers = np.zeros((num_clusters, len(features)))
-        cluster_counts = np.zeros(num_clusters)
-        for i, item in enumerate(data):
-            cluster_idx = cluster_assignments[i]
-            for feature_idx, feature in enumerate(features):
-                new_centers[cluster_idx, feature_idx] += item[feature]
-            cluster_counts[cluster_idx] += 1
-        for cluster_idx in range(num_clusters):
-            new_centers[cluster_idx] /= cluster_counts[cluster_idx]
-
-        # Mengecek apakah pusat kluster sudah konvergen
-        if np.all(centers == new_centers):
-            break
-
-        centers = new_centers.flatten()
-
-    # Memperbarui nilai 'cluster' di setiap item data
-    for i, item in enumerate(data):
-        item['cluster'] = cluster_assignments[i]
-
-    # Menampilkan hasil kluster untuk setiap key 'cluster'
-    for cluster_id in range(num_clusters):
-        clustered_data = [item for item in data if item['cluster'] == cluster_id]
-        print(f"Cluster {cluster_id}:")
-        for item in clustered_data:
-            print(item)
-        print("\n")
-
-    # print (data)
-    return data
 
 if __name__ == '__main__' :
     app.run(host='0.0.0.0', port=80)
+
 

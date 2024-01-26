@@ -179,4 +179,4 @@ def clustering(keyword, filename) :
 
 
 # jalankan method clustering 
-clustering('handphone', '02_handphone.xlsx')
+clustering('laptop', '02_laptop.xlsx')
