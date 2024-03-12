@@ -1,4 +1,4 @@
-from flask import Flask, request, make_response, jsonify, Response
+from flask import Flask, request, make_response, jsonify, Response, send_file
 from flask_cors import CORS
 import pandas as pd
 import requests
@@ -18,7 +18,7 @@ CORS(app)
 @app.route('/')
 @app.route('/index') 
 def index() :
-    return 'Hello, World!'
+    return send_file("index.html")
 
 @app.route('/search', methods=['GET'])
 def fetchAPI() :
@@ -153,18 +153,11 @@ def clustering(params) :
     #     {"sold" : 86, "rating_score" : 5, "count_review" : 34},
     # ]
     # print (data)
-    def randomizeData(array, length) :
-        random_data = random.sample(array, length)
-        if (random_data[0]["sold"] != random_data[1]["sold"] and random_data[1]["sold"] != random_data[2]["sold"]) :
-            return random_data
-        else :
-            return randomizeData(array, length)
 
     # jika data produk lebih dari jumlah k cluster
     if (len(data) > num_cluster) :
         # ambil data secara acak sebagai centroid awal 
-        random_data = random.sample(data, num_cluster)
-        # random_data = randomizeData(data, num_cluster)
+        random_data = randomize(data, num_cluster)
     else : # jika kurang dari jumlah k cluster, tampil data
         return {'data' : []}
 
@@ -183,7 +176,7 @@ def clustering(params) :
         # 'c3' : {'sold' : random.randint(900, 1000), 'rating_score': 5, 'count_review' : random.randint(900, 1000)},
     }
 
-    # print(centroids)
+    print(centroids)
 
     max_iteration = 100 # atur iterasi maksimal
     for _ in range(max_iteration) :
@@ -202,7 +195,7 @@ def clustering(params) :
             euq_c2 = math.sqrt((data[i]['sold'] - centroids['c2']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c2']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c2']['count_review']) ** 2)
             euq_c3 = math.sqrt((data[i]['sold'] - centroids['c3']['sold']) ** 2 + (data[i]['rating_score'] - centroids['c3']['rating_score']) ** 2 + (data[i]['count_review'] - centroids['c3']['count_review']) ** 2)
 
-            # print(euq_c1, euq_c2, euq_c3)
+            print(euq_c1, euq_c2, euq_c3)
             # tentukan cluster dari setiap data berdasarkan jarak ke pusat centrois terdekat 
 
             # jika c1 yang paling sedikit
@@ -268,6 +261,7 @@ def clustering(params) :
         print(centroids)
 
     # print(data)
+    response_data['centroids'] = centroids
     response_data['cluster_1'] = jml_c1
     response_data['cluster_2'] = jml_c2
     response_data['cluster_3'] = jml_c3
@@ -433,6 +427,19 @@ def test_crwaling(keyword) :
     response = httpRequest[0]['data']['ace_search_product_v4']['data']
 
     return response
+
+
+@app.route('/privacy-policy') 
+def privacy_policy() :
+    return send_file("privacy-policies.html")
+
+
+def randomize(array, length) :
+    random_data = random.sample(array, length)
+    if (random_data[0]["sold"] != random_data[1]["sold"] and random_data[1]["sold"] != random_data[2]["sold"] and random_data[0]["sold"] != random_data[2]["sold"]) :
+        return random_data
+    else :
+        return randomize(array, length)
 
 if __name__ == '__main__' :
     app.run(host='0.0.0.0', port=80)
